@@ -4,19 +4,23 @@ import matplotlib.pyplot as plt
 pd.set_option('display.max_columns', 20)
 pd.set_option('display.width', 2000)
 test = pd.read_csv(''https://.../forFBpost.csv', sep = ';')
-print(test.shape)
-print(test.dtypes)
-print(test.duplicated().sum())
-print(test.head(5))
-a = test.rename(columns = {'Город': 'city', 'Модель': 'model', 'Нижняя граница': 'lower_bound', 'Верхняя граница': 'upper_bound'})
+print(test.shape) # размерность датафрейма
+print(test.dtypes) # типы данных
+print(test.duplicated().sum()) # проверим, есть ли дублирующиеся строки (нет)
+print(test.head(5)) # выведем первые 5 строк датафрейма
+a = test.rename(columns = {'Город': 'city', 'Модель': 'model', 'Нижняя граница': 'lower_bound', 'Верхняя граница': 'upper_bound'}) # переименуем колонки более корректно
 
-a = a[(a.fact != 0) & (a.model != 0) & (a.model.notnull())]
+a = a[(a.fact != 0) & (a.model != 0) & (a.model.notnull())] # подготовка данных - оставляем только данные с ненулевыми значениями в колонках fact и model 
+# и с заполненными в колонке model
+                   
 print(a.head(5))
 print(a.shape)
 
-
-e = a.groupby('city').aggregate({'fact': 'mean'}).sort_values('fact', ascending = False)
+e = a.groupby('city').aggregate({'fact': 'mean'}).sort_values('fact', ascending = False) # вычислим величину средней фактической численности населения для каждого города
 print(e)
+
+# сегментируем весь датафрейм на 4 части - в зависимости от численности населения (127138 - средняя численность по всему датафрейму, 
+# остальные критерии взяты из определения мелких, средних и крупных городов)                   
 def segment(row):
     if row < 127138:
         return 'low'
@@ -38,7 +42,7 @@ ll = a.query("segment == 'large'").city.nunique()
 exll = a.query("segment == 'extra_large'").city.nunique()
 print(l, m, ll, exll)
 
-#среднее фактическое количество населения в каждом сегменте:
+#средняя фактическая численность населения по городам в каждом сегменте:
 l1 = a.query("segment == 'low'").groupby('city').aggregate({'fact': 'mean'}).sort_values('fact', ascending = False).mean()
 m1 = a.query("segment == 'middle'").groupby('city').aggregate({'fact': 'mean'}).sort_values('fact', ascending = False).mean()
 ll1 = a.query("segment == 'large'").groupby('city').aggregate({'fact': 'mean'}).sort_values('fact', ascending = False).mean()
@@ -57,7 +61,8 @@ p = a.query("segment == 'large'")
 p['difference'] = abs(p['fact'] - 615454)
 print(p[p['difference'] == p['difference'].min()])
 
-#это будут города Сокол, Химки и Ярославль
+# это будут города Сокол, Химки и Ярославль
+# для этих городов построим распределение фактической и смоделированной численности населения в зависимости от года (диапазон возьмем до 2030 года):
 plt.figure(figsize=(25, 15))
 
 plt.subplot(2, 3, 1)
@@ -107,19 +112,7 @@ plt.plot(i.year, i.model, label='модель')
 plt.title("Краснодар")
 plt.show
 
-#cities = a.city
-#years = a.years
-#plt.bar(cities, years)
-#plt.title("A")
-#plt.xlabel("город")
-#plt.ylabel("год")
-#plt.show
-
-#plt.figure(figsize=(10, 10))
-#l1 = a.query("segment == 'low'").groupby('city').aggregate({'fact': 'mean'}).sort_values('fact', ascending=False).head(10)
-#l1.plot(kind = 'bar').set_title('low сегмент')
-#plt.show
-
+# выборочно построим графики среднего значения численности населения для 5-ти городов из каждого сегмента
 plt.figure(figsize=(25, 15))
 
 plt.subplot(2, 2, 1)
@@ -154,13 +147,7 @@ exll1 = a.query("segment == 'extra_large'").groupby('city').aggregate({'fact': '
 plt.plot(exll1)
 plt.title('extra large сегмент')
 
-
-
-
-
-
-
-
+# построим также барплоты для трех выбранных городов из сегментов low, middle, large и для двух городов из сегмента extra large (Москва и Краснодар)
 a.query("city == 'Сокол' & year <= 2037").plot(x='year', y=['fact', 'model'], kind='bar').set_title('Сокол')
 
 a.query("city == 'Химки' & year <= 2037").plot(x='year', y=['fact', 'model'], kind='bar').set_title('Химки')
@@ -172,7 +159,8 @@ a.query("city == 'Москва' & year < 2037").plot(x='year', y=['fact', 'model
 a.query("city == 'Краснодар' & year < 2037").plot(x='year', y=['fact', 'model'], kind='bar').set_title('Краснодар')
 plt.show
 
-
+# можно заметить, что Краснодар одновременно попал в 2 выборки, large и extra large, что связано с тем, что в один период времени фактическое население в городе
+# находилось в диапазоне 500000 - 1000000, а потом увеличилось и стало более 1000000, но тем не менее среднее фактическое значение меньше миллиона и составляет 906706.
 print(a.query("city == 'Краснодар'").aggregate({'fact': 'mean'}))
 
 
