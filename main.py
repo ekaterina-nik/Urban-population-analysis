@@ -3,7 +3,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 pd.set_option('display.max_columns', 20)
 pd.set_option('display.width', 2000)
-test = pd.read_csv('C:/Users/Екатерина/Downloads/forFBpost.csv', sep = ';')
+test = pd.read_csv(''https://.../forFBpost.csv', sep = ';')
 print(test.shape)
 print(test.dtypes)
 print(test.duplicated().sum())
@@ -14,10 +14,7 @@ a = a[(a.fact != 0) & (a.model != 0) & (a.model.notnull())]
 print(a.head(5))
 print(a.shape)
 
-#c = a[['fact', 'model', 'lower_bound', 'upper_bound']]
-#for column in c:
-    #sns.displot(a, x = column, kde=True)
-#b.plot(x = 'year', y = ['fact', 'model', 'lower_bound', 'upper_bound'])
+
 e = a.groupby('city').aggregate({'fact': 'mean'}).sort_values('fact', ascending = False)
 print(e)
 def segment(row):
@@ -34,9 +31,6 @@ a['inaccuracy'] = (a.upper_bound - a.lower_bound)/2
 print(a.head(10))
 
 
-#('A <= 80 & AUS > 100 & IND < 250')
-
-
 #количество городов в каждом сегменте
 l = a.query("segment == 'low'").city.nunique()
 m = a.query("segment == 'middle'").city.nunique()
@@ -51,10 +45,8 @@ ll1 = a.query("segment == 'large'").groupby('city').aggregate({'fact': 'mean'}).
 exll1 = a.query("segment == 'extra_large'").groupby('city').aggregate({'fact': 'mean'}).sort_values('fact', ascending = False).mean()
 print(l1, m1, ll1, exll1)
 
-#df[df['my_column'] == df['my_column']. max ()]
-
-#print(a[a['fact'] == a['fact'].mean()])
-
+#посчитаем для каждого из сегментов low, middle, large для каждого города величину отклонения среднего фактического количества жителей от среднего по сегменту, 
+#найдем в каждой группе город с минимальным отклонением от среднего по сегменту
 n = a.query("segment == 'low'")
 n['difference'] = abs(n['fact'] - 37848)
 print(n[n['difference'] == n['difference'].min()])
@@ -65,7 +57,7 @@ p = a.query("segment == 'large'")
 p['difference'] = abs(p['fact'] - 615454)
 print(p[p['difference'] == p['difference'].min()])
 
-
+#это будут города Сокол, Химки и Ярославль
 plt.figure(figsize=(25, 15))
 
 plt.subplot(2, 3, 1)
